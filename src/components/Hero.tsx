@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
-import { Rocket, Target, Trophy, Sparkles, Activity } from 'lucide-react';
-import { ShippyMascot } from './ShippyMascot';
+import { Rocket, Target, Trophy, Sparkles } from 'lucide-react';
+import { CatMascot } from './CatMascot';
 
 const Particles = () => {
   return (
@@ -53,7 +53,7 @@ export const Hero = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex-1 text-center lg:text-left"
+            className="flex-1 text-center"
           >
 
 
@@ -73,12 +73,12 @@ export const Hero = () => {
               </div> OR LOSE.
             </h1>
 
-            <p className="text-base md:text-xl text-slate-500 max-w-xl mx-auto lg:mx-0 mb-12 font-medium leading-relaxed">
+            <p className="text-base md:text-xl text-slate-500 max-w-xl mx-auto mb-12 font-medium leading-relaxed">
               The high-stakes productivity protocol. Put your MON tokens on the line.
               Ship your goals on time or feed the community reward pool.
             </p>
 
-            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
               {[
                 { icon: Target, label: "COMMIT", color: "from-purple-600 to-purple-800" },
                 { icon: Rocket, label: "STAKE", color: "from-blue-600 to-blue-800" },
@@ -101,29 +101,10 @@ export const Hero = () => {
             initial={{ opacity: 0, scale: 0.8, rotate: 10 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 1, delay: 0.2 }}
-            className="relative"
+            className="relative flex items-center justify-center lg:-translate-x-8"
           >
             <div className="absolute inset-0 bg-purple-600/20 blur-[100px] rounded-full animate-pulse" />
-            <div className="relative glass-panel p-10 md:p-12 rounded-[40px] border-slate-200">
-              <ShippyMascot state="neutral" className="w-48 h-48 md:w-64 md:h-64" />
-            </div>
-
-            {/* Floating Stats Card */}
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -bottom-6 -left-6 glass-panel p-5 rounded-2xl border-slate-200 shadow-2xl"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                  <Activity size={18} className="text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Global Success</p>
-                  <p className="text-lg font-black text-slate-900">94.2%</p>
-                </div>
-              </div>
-            </motion.div>
+            <CatMascot isGenerating={false} reaction="neutral" size={300} className="w-56 h-56 md:w-64 md:h-64 lg:w-80 lg:h-80" mode="mascot" />
           </motion.div>
         </div>
       </div>

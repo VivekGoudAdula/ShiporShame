@@ -91,7 +91,7 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
                     transition={{ delay: 0.2, duration: 0.8 }}
                   >
                     <h1 className="text-5xl font-black tracking-[0.8em] text-slate-900 ml-[0.8em]">MONAD</h1>
-                    <p className="text-purple-600 font-mono text-sm mt-4 tracking-[0.5em] uppercase">Protocol Synchronized</p>
+                    <p className="text-slate-900 font-mono text-sm mt-4 tracking-[0.5em] uppercase">Protocol Synchronized</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -129,7 +129,7 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
                   animate={{ width: 96 }}
                   transition={{ duration: 1.5, delay: 0.8 }}
                 />
-                <p className="text-slate-400 font-mono text-xs mt-6 tracking-[0.4em] uppercase">The ultimate commitment layer</p>
+                <p className="text-slate-900 font-mono text-xs mt-6 tracking-[0.4em] uppercase">The ultimate commitment layer</p>
               </motion.div>
             </motion.div>
           )}

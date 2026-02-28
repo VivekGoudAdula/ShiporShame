@@ -6,9 +6,13 @@ import { CommitmentForm } from './components/CommitmentForm';
 import { CommitmentCard } from './components/CommitmentCard';
 import { Leaderboard } from './components/Leaderboard';
 import { RewardPool } from './components/RewardPool';
-import { CyberBackground } from './components/CyberBackground';
+import { BackgroundLayer } from './components/BackgroundLayer';
+import { FailureImpactEffect } from './components/FailureImpactEffect';
 import { IntroScreen } from './components/IntroScreen';
-import { ShippyMascot, ShippyState } from './components/ShippyMascot';
+import { CatMascot, CatReaction } from './components/CatMascot';
+import { CoinFlyEffect } from './components/CoinFlyEffect';
+import meowSound from './public/sounds/meow.mp3';
+import faaahSound from './public/sounds/faaah.mp3';
 import { useWallet } from './hooks/useWallet';
 import { useContract, Status } from './hooks/useContract';
 import { CONTRACT_ADDRESS } from './utils/contract';
@@ -42,13 +46,14 @@ export default function App() {
 
   const [showDemoWarning, setShowDemoWarning] = useState(false);
   const [isIntroComplete, setIsIntroComplete] = useState(false);
-  const [isFailureDrama, setIsFailureDrama] = useState(false);
+  const [isCoinFlying, setIsCoinFlying] = useState(false);
+  const [coinStartPos, setCoinStartPos] = useState({ x: 0, y: 0 });
   const [isShipDrama, setIsShipDrama] = useState(false);
   const [walletBalance, setWalletBalance] = useState<bigint | null>(null);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000") {
+    if ((CONTRACT_ADDRESS as string) === "0x0000000000000000000000000000000000000000") {
       setShowDemoWarning(true);
     }
   }, []);
@@ -100,18 +105,41 @@ export default function App() {
     return streak;
   })();
 
-  const mascotState: ShippyState =
+  const now = Math.floor(Date.now() / 1000);
+  const activeCommitments = userCommitments.filter(c => c.status === Status.Active);
+  const hasOverdue = activeCommitments.some(c => c.deadline < now);
+  const hasUrgent = activeCommitments.some(c => c.deadline - now < 3600); // 1 hour
+
+  const mascotState: CatReaction =
     isShipDrama ? 'happy' :
-      isFailureDrama ? 'angry' :
-        rewardPool > ethers.parseEther('3') ? 'concerned' :
-          currentStreak > 3 ? 'streak' :
-            'neutral';
+      isCoinFlying ? 'angry' :
+        hasOverdue ? 'sad' :
+          hasUrgent ? 'concerned' :
+            currentStreak >= 3 ? 'happy' :
+              totalFails > totalShips && totalFails > 0 ? 'sad' :
+                'neutral';
 
   const handleFail = useCallback(async (id: number) => {
     try {
+      // Try to find the element associated with the failed commitment to get position
+      // This is a simplified approach, in a real app we'd pass a ref or id to capture position
+      const rect = document.querySelector(`[data-commitment-id="${id}"]`)?.getBoundingClientRect();
+      if (rect) {
+        setCoinStartPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+      } else {
+        setCoinStartPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+      }
+
+      const faaah = new Audio(faaahSound);
+      faaah.volume = 0.5;
+      faaah.play();
+
       await triggerFail(id);
-      setIsFailureDrama(true);
-      setTimeout(() => setIsFailureDrama(false), 2500);
+      setIsCoinFlying(true);
+
+      setTimeout(() => {
+        setIsCoinFlying(false);
+      }, 2500);
     } catch (e: any) {
       setGlobalError(e.message || 'Failed to trigger failure.');
     }
@@ -135,22 +163,11 @@ export default function App() {
   return (
     <div
       className={cn(
-        "min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans selection:bg-purple-500/30 transition-colors duration-500",
-        isFailureDrama && "bg-rose-50"
+        "min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans selection:bg-purple-500/30 transition-colors duration-500"
       )}
     >
-      {/* Failure drama overlay */}
-      <AnimatePresence>
-        {isFailureDrama && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0.7, 1, 0] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 2.5, times: [0, 0.1, 0.4, 0.7, 1] }}
-            className="fixed inset-0 bg-rose-600/10 pointer-events-none z-[200] backdrop-blur-[1px]"
-          />
-        )}
-      </AnimatePresence>
+      <CatMascot isGenerating={loading} reaction={mascotState} mode="floating" />
+      <CoinFlyEffect isTriggered={isCoinFlying} startX={coinStartPos.x} startY={coinStartPos.y} />
 
       {/* Ship success overlay */}
       <AnimatePresence>
@@ -193,7 +210,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <CyberBackground />
+      <BackgroundLayer />
 
       <AnimatePresence>
         {isIntroComplete && (
@@ -287,7 +304,7 @@ export default function App() {
                               animate={{ opacity: 1 }}
                               className="col-span-full py-32 text-center border-2 border-dashed border-slate-200 rounded-[40px] bg-white shadow-sm"
                             >
-                              <ShippyMascot state="neutral" className="mx-auto mb-8 opacity-40 grayscale" />
+                              <CatMascot isGenerating={false} reaction="neutral" className="mx-auto mb-8 opacity-40 grayscale" size={128} mode="mascot" />
                               <p className="text-slate-400 text-sm font-black tracking-[0.25em] uppercase">No active missions detected</p>
                               <p className="text-slate-500 text-xs font-mono mt-3">Be the first to commit!</p>
                             </motion.div>
@@ -333,17 +350,12 @@ export default function App() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Activity size={15} className="text-blue-400" />
-                                <span className="text-xs font-black text-slate-400 uppercase">Cat Mood</span>
+                                <span className="text-xs font-black text-slate-400 uppercase">Status</span>
                               </div>
                               <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">
-                                {currentStreak > 3 ? "Hyper-Focused 🔥" : totalFails > 2 ? "Disappointed 😞" : "Optimistic 😸"}
+                                {currentStreak > 3 ? "Hyper-Focused 🔥" : totalFails > 2 ? "Struggling 😞" : "Optimistic 😸"}
                               </span>
                             </div>
-                          </div>
-
-                          {/* Mini mascot in the DNA panel */}
-                          <div className="mt-10 flex justify-center">
-                            <ShippyMascot state={mascotState} className="w-24 h-24" />
                           </div>
                         </motion.div>
                       )}

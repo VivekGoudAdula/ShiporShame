@@ -11,18 +11,18 @@ interface RewardPoolProps {
 const ParticleSparks = () => {
   return (
     <div className="absolute inset-x-0 bottom-0 top-1/2 overflow-hidden pointer-events-none">
-      {[...Array(8)].map((_, i) => (
+      {[...Array(12)].map((_, i) => (
         <motion.div
           key={i}
-          initial={{ opacity: 0, y: 50, x: Math.random() * 100 + '%' }}
-          animate={{ opacity: [0, 1, 0], y: -100 }}
+          initial={{ opacity: 0, y: 50, x: (Math.random() * 80 + 10) + '%' }}
+          animate={{ opacity: [0, 1, 0], y: -200, scale: [1, 2, 1] }}
           transition={{
-            duration: 0.6,
+            duration: 0.8,
             repeat: Infinity,
-            delay: Math.random() * 2,
+            delay: Math.random() * 0.5,
             ease: "easeOut"
           }}
-          className="absolute w-1.5 h-1.5 bg-purple-500 rounded-full blur-[1px]"
+          className="absolute w-2 h-2 bg-rose-500 rounded-full blur-[2px]"
         />
       ))}
     </div>
@@ -51,9 +51,10 @@ export const RewardPool = ({ amount }: RewardPoolProps) => {
       setIsIncreasing(true);
       const t = setTimeout(() => setIsIncreasing(false), 2500);
       prevAmountRef.current = amount;
-      return () => clearTimeout(t);
+      // No return here to allow counter to update
+    } else {
+      prevAmountRef.current = amount;
     }
-    prevAmountRef.current = amount;
 
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -100,14 +101,15 @@ export const RewardPool = ({ amount }: RewardPoolProps) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{
         opacity: 1,
-        scale: isIncreasing ? [0.95, 1] : 1,
-        boxShadow: isIncreasing ? '0 0 30px rgba(168, 85, 247, 0.4)' : '0 0 50px rgba(245,158,11,0.05)'
+        scale: isIncreasing ? [1, 1.1, 1] : 1,
+        boxShadow: isIncreasing ? '0 0 40px rgba(244, 63, 94, 0.3)' : '0 0 50px rgba(245,158,11,0.05)'
       }}
       transition={{
-        scale: { type: "spring", stiffness: 300, damping: 15, duration: 0.4 },
+        scale: { duration: 0.4, times: [0, 0.5, 1], ease: "easeOut" },
         boxShadow: { duration: 0.6 }
       }}
       className="p-10 rounded-[40px] glass-panel relative overflow-hidden group border-amber-500/20 shadow-xl shadow-amber-500/5"
+      data-reward-pool="true"
     >
       <AnimatePresence>
         {isIncreasing && <ParticleSparks />}

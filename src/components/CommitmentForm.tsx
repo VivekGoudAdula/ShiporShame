@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Clock, Coins, Loader2, X, Target, Zap, ChevronRight, ChevronLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { ShippyMascot } from './ShippyMascot';
+import { CatMascot } from './CatMascot';
 import { ethers } from 'ethers';
+import meowSound from '../public/sounds/meow.mp3';
 
 interface CommitmentFormProps {
   onCommit: (desc: string, duration: number, stake: string) => Promise<void>;
@@ -134,7 +135,10 @@ export const CommitmentForm = ({ onCommit, loading, address, onConnect, isCorrec
             exit={{ opacity: 0, scale: 0.9 }}
             whileHover={{ scale: 1.02, borderColor: 'rgba(139, 92, 246, 0.3)' }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => setIsOpen(true)}
+            onClick={() => {
+              new Audio(meowSound).play();
+              setIsOpen(true);
+            }}
             className="w-full p-10 rounded-[40px] border-2 border-dashed border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -201,7 +205,7 @@ export const CommitmentForm = ({ onCommit, loading, address, onConnect, isCorrec
                       exit={{ opacity: 0, x: -20 }}
                       className="w-full space-y-6 text-center"
                     >
-                      <ShippyMascot state="neutral" className="mx-auto mb-6" />
+                      <CatMascot isGenerating={false} reaction="neutral" size={128} className="mx-auto mb-6" mode="mascot" />
                       <div className="space-y-2 text-left">
                         <h3 className="text-2xl font-black text-slate-900 text-center mb-4">WHAT ARE YOU SHIPPING?</h3>
                         <textarea

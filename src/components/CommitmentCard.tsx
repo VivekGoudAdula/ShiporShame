@@ -182,6 +182,7 @@ export const CommitmentCard: React.FC<CommitmentCardProps> = ({ commitment, curr
         config.glow,
         config.animation
       )}
+      data-commitment-id={commitment.id}
     >
       {/* Shipped success glow overlay */}
       <AnimatePresence>
@@ -267,54 +268,55 @@ export const CommitmentCard: React.FC<CommitmentCardProps> = ({ commitment, curr
         )}
       </AnimatePresence>
 
-      {commitment.status === Status.Active && (
-        <div className="relative z-10">
-          {!currentUser ? (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              disabled={isActionLoading}
-              onClick={onConnect}
-              className="w-full py-4 rounded-2xl bg-slate-100 text-slate-900 text-xs font-black tracking-[0.2em] hover:bg-slate-200 transition-all border border-slate-200 uppercase disabled:opacity-50"
-            >
-              Connect Wallet
-            </motion.button>
-          ) : canShip ? (
-            <motion.button
-              whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(16,185,129,0.2)" }}
-              whileTap={{ scale: 0.98 }}
-              disabled={isActionLoading}
-              onClick={() => handleAction('ship')}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black tracking-[0.2em] shadow-xl shadow-emerald-500/10 transition-all disabled:opacity-50 uppercase flex items-center justify-center gap-2"
-            >
-              {isActionLoading ? <><Loader2 size={16} className="animate-spin" /> SHIPPING...</> : <><CheckCircle2 size={16} /> SHIP IT ✅</>}
-            </motion.button>
-          ) : canTriggerFail ? (
-            <motion.button
-              whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(244,63,94,0.2)" }}
-              whileTap={{ scale: 0.98 }}
-              disabled={isActionLoading}
-              onClick={() => handleAction('fail')}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 text-white text-xs font-black tracking-[0.2em] shadow-xl shadow-rose-500/10 transition-all disabled:opacity-50 uppercase flex items-center justify-center gap-2"
-            >
-              {isActionLoading ? <><Loader2 size={16} className="animate-spin" /> TRIGGERING...</> : <><XCircle size={16} /> TRIGGER FAILURE 💀</>}
-            </motion.button>
-          ) : (
-            // Creator + not expired: waiting
-            isCreator ? (
-              <div className="w-full py-4 rounded-2xl bg-blue-50 text-blue-400 text-[10px] font-black tracking-[0.4em] text-center border border-blue-200 uppercase flex items-center justify-center gap-3">
-                <Activity size={14} className="animate-pulse" />
-                Protocol Active — Keep Going!
-              </div>
+      {
+        commitment.status === Status.Active && (
+          <div className="relative z-10">
+            {!currentUser ? (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                disabled={isActionLoading}
+                onClick={onConnect}
+                className="w-full py-4 rounded-2xl bg-slate-100 text-slate-900 text-xs font-black tracking-[0.2em] hover:bg-slate-200 transition-all border border-slate-200 uppercase disabled:opacity-50"
+              >
+                Connect Wallet
+              </motion.button>
+            ) : canShip ? (
+              <motion.button
+                whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(16,185,129,0.2)" }}
+                whileTap={{ scale: 0.98 }}
+                disabled={isActionLoading}
+                onClick={() => handleAction('ship')}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black tracking-[0.2em] shadow-xl shadow-emerald-500/10 transition-all disabled:opacity-50 uppercase flex items-center justify-center gap-2"
+              >
+                {isActionLoading ? <><Loader2 size={16} className="animate-spin" /> SHIPPING...</> : <><CheckCircle2 size={16} /> SHIP IT ✅</>}
+              </motion.button>
+            ) : canTriggerFail ? (
+              <motion.button
+                whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(244,63,94,0.2)" }}
+                whileTap={{ scale: 0.98 }}
+                disabled={isActionLoading}
+                onClick={() => handleAction('fail')}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 text-white text-xs font-black tracking-[0.2em] shadow-xl shadow-rose-500/10 transition-all disabled:opacity-50 uppercase flex items-center justify-center gap-2"
+              >
+                {isActionLoading ? <><Loader2 size={16} className="animate-spin" /> TRIGGERING...</> : <><XCircle size={16} /> TRIGGER FAILURE 💀</>}
+              </motion.button>
             ) : (
-              <div className="w-full py-4 rounded-2xl bg-slate-100 text-slate-300 text-[10px] font-black tracking-[0.4em] text-center border border-slate-200 uppercase flex items-center justify-center gap-3">
-                <Activity size={14} className="animate-pulse" />
-                Watching...
-              </div>
-            )
-          )}
-        </div>
-      )}
+              // Creator + not expired: waiting
+              isCreator ? (
+                <div className="w-full py-4 rounded-2xl bg-blue-50 text-blue-400 text-[10px] font-black tracking-[0.4em] text-center border border-blue-200 uppercase flex items-center justify-center gap-3">
+                  <Activity size={14} className="animate-pulse" />
+                  Protocol Active — Keep Going!
+                </div>
+              ) : (
+                <div className="w-full py-4 rounded-2xl bg-slate-100 text-slate-300 text-[10px] font-black tracking-[0.4em] text-center border border-slate-200 uppercase flex items-center justify-center gap-3">
+                  <Activity size={14} className="animate-pulse" />
+                  Watching...
+                </div>
+              )
+            )}
+          </div>
+        )}
     </motion.div>
   );
 };

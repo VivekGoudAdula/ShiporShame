@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { ABI } from '../abi';
 
 // Replace with your actual deployed contract address on Monad Testnet
-export const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; 
+export const CONTRACT_ADDRESS = "0xB4B3878F564f0538c9Aa03Ee42E3360b44e7f84e";
 
 export const MONAD_TESTNET_PARAMS = {
   chainId: '0x279f', // 10143 in decimal
