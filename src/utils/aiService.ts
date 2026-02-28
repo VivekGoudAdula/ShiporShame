@@ -7,7 +7,8 @@ export interface AIAnalysis {
 
 // In a real production app, this should be handled via a secure backend.
 // For the hackathon, we'll use an environment variable.
-const API_KEY = import.meta.env.VITE_XAI_API_KEY || "";
+// This should be handled via a secure backend API endpoint
+// Never expose API keys in frontend code, even via environment variables
 const API_URL = "https://api.x.ai/v1/chat/completions";
 
 export const analyzeGoal = async (goal: string): Promise<AIAnalysis> => {
