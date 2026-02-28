@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Clock, Coins, Loader2, X, Target, Zap, ChevronRight, ChevronLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Clock, Coins, Loader2, X, Target, Zap, ChevronRight, ChevronLeft, AlertCircle, CheckCircle2, Wand2, Sparkles, TrendingUp, ShieldAlert } from 'lucide-react';
 import { ShippyMascot } from './ShippyMascot';
+import { CatMascot } from './CatMascot';
 import { ethers } from 'ethers';
+import { analyzeGoal, AIAnalysis } from '../utils/aiService';
 
 interface CommitmentFormProps {
   onCommit: (desc: string, duration: number, stake: string) => Promise<void>;
@@ -37,6 +39,8 @@ export const CommitmentForm = ({ onCommit, loading, address, onConnect, isCorrec
   const [txError, setTxError] = useState<string | null>(null);
   const [descError, setDescError] = useState<string | null>(null);
   const [stakeError, setStakeError] = useState<string | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   const validateDescription = useCallback((val: string): boolean => {
     if (!val.trim()) {
@@ -75,6 +79,25 @@ export const CommitmentForm = ({ onCommit, loading, address, onConnect, isCorrec
     setStakeError(null);
     return true;
   }, [balance]);
+
+  const handleAiRefine = async () => {
+    if (!validateDescription(description)) return;
+    setIsAiLoading(true);
+    try {
+      const analysis = await analyzeGoal(description);
+      setAiAnalysis(analysis);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const applyRefinedGoal = () => {
+    if (aiAnalysis) {
+      setDescription(aiAnalysis.refinedGoal);
+    }
+  };
 
   const handleNextStep = () => {
     if (step === 1 && !validateDescription(description)) return;
@@ -125,6 +148,7 @@ export const CommitmentForm = ({ onCommit, loading, address, onConnect, isCorrec
 
   return (
     <div className="max-w-2xl mx-auto mb-20 px-6">
+      <CatMascot isGenerating={isAiLoading} soundEnabled={true} />
       <AnimatePresence mode="wait">
         {!isOpen ? (
           <motion.button
@@ -220,6 +244,77 @@ export const CommitmentForm = ({ onCommit, loading, address, onConnect, isCorrec
                           <span className={`text-xs font-mono ml-auto mt-1 ${description.length > 260 ? 'text-rose-500' : 'text-slate-300'}`}>
                             {description.length}/280
                           </span>
+                        </div>
+
+                        {/* AI Section */}
+                        <div className="pt-4">
+                          <AnimatePresence mode="wait">
+                            {!aiAnalysis ? (
+                              <motion.button
+                                key="ai-btn"
+                                whileHover={{ scale: 1.02, backgroundColor: 'rgba(139, 92, 246, 0.05)' }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleAiRefine}
+                                disabled={isAiLoading || description.length < 5}
+                                className="w-full py-4 rounded-2xl border border-purple-200 bg-white flex items-center justify-center gap-3 text-sm font-black text-purple-600 transition-all disabled:opacity-50"
+                              >
+                                {isAiLoading ? (
+                                  <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                  <Wand2 size={16} />
+                                )}
+                                {isAiLoading ? 'SHIPMATE ANALYZING...' : 'REFINE WITH SHIPMATE AI'}
+                              </motion.button>
+                            ) : (
+                              <motion.div
+                                key="ai-result"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="p-6 rounded-3xl bg-slate-900 text-white relative overflow-hidden"
+                              >
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                  <Sparkles size={48} />
+                                </div>
+                                <div className="relative z-10 space-y-4">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black tracking-[0.3em] text-purple-400 uppercase">Analysis Results</span>
+                                    <button onClick={() => setAiAnalysis(null)} className="text-slate-500 hover:text-white transition-colors">
+                                      <X size={14} />
+                                    </button>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <TrendingUp size={12} className="text-emerald-400" />
+                                        <span className="text-[8px] font-black text-slate-500 uppercase">Success Odds</span>
+                                      </div>
+                                      <span className="text-xl font-black">{aiAnalysis.probability}%</span>
+                                    </div>
+                                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <ShieldAlert size={12} className={aiAnalysis.riskLevel === 'HIGH' ? 'text-rose-400' : 'text-amber-400'} />
+                                        <span className="text-[8px] font-black text-slate-500 uppercase">Risk Level</span>
+                                      </div>
+                                      <span className={`text-xl font-black ${aiAnalysis.riskLevel === 'HIGH' ? 'text-rose-400' : 'text-amber-400'}`}>{aiAnalysis.riskLevel}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <span className="text-[10px] font-black text-slate-500 uppercase block">Expert Advice</span>
+                                    <p className="text-xs font-medium italic text-slate-300">"{aiAnalysis.advice}"</p>
+                                  </div>
+
+                                  <button
+                                    onClick={applyRefinedGoal}
+                                    className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-[10px] font-black uppercase tracking-widest transition-all"
+                                  >
+                                    Apply Refinement
+                                  </button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </motion.div>

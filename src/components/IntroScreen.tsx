@@ -91,7 +91,7 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
                     transition={{ delay: 0.2, duration: 0.8 }}
                   >
                     <h1 className="text-5xl font-black tracking-[0.8em] text-slate-900 ml-[0.8em]">MONAD</h1>
-                    <p className="text-purple-600 font-mono text-sm mt-4 tracking-[0.5em] uppercase">Protocol Synchronized</p>
+                    <p className="text-purple-900 font-mono text-sm mt-4 tracking-[0.5em] uppercase font-bold">Protocol Synchronized</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -111,7 +111,7 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
                 transition={{ duration: 1, delay: 0.2 }}
                 className="flex flex-col items-center"
               >
-                <div className="relative w-48 h-48 md:w-64 md:h-64 mb-8">
+                <div className="relative w-48 h-48 md:w-64 md:h-64 mb-4">
                   <motion.div
                     className="absolute inset-0 bg-purple-500/20 blur-[80px] rounded-full"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
@@ -119,6 +119,15 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
                   />
                   <img src={shipOrShameLogo} alt="Logo" className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_30px_rgba(139,92,246,0.5)]" />
                 </div>
+
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-sm font-black tracking-[0.8em] text-slate-900 uppercase mb-8"
+                >
+                  ShipOrShame
+                </motion.span>
 
                 <h2 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 text-center">
                   SHIP<span className="text-purple-600">OR</span>SHAME
@@ -129,7 +138,7 @@ export const IntroScreen = ({ onComplete }: IntroScreenProps) => {
                   animate={{ width: 96 }}
                   transition={{ duration: 1.5, delay: 0.8 }}
                 />
-                <p className="text-slate-400 font-mono text-xs mt-6 tracking-[0.4em] uppercase">The ultimate commitment layer</p>
+                <p className="text-slate-900 font-mono text-[10px] md:text-xs mt-6 tracking-[0.4em] uppercase font-black">The ultimate commitment layer</p>
               </motion.div>
             </motion.div>
           )}

@@ -1,138 +1,141 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useEffect } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 
 export type ShippyState = 'neutral' | 'happy' | 'angry' | 'concerned' | 'shipping' | 'streak' | 'failed';
 
 interface ShippyMascotProps {
   state?: ShippyState;
   className?: string;
-  isHighPressure?: boolean;
 }
 
-export const ShippyMascot = ({ state = 'neutral', className, isHighPressure }: ShippyMascotProps) => {
-  const [blink, setBlink] = React.useState(false);
+export const ShippyMascot = ({ state = 'neutral', className }: ShippyMascotProps) => {
+  const mouseX = useMotionValue(typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
+  const mouseY = useMotionValue(typeof window !== 'undefined' ? window.innerHeight / 2 : 0);
 
-  React.useEffect(() => {
-    const blinkInterval = setInterval(() => {
-      setBlink(true);
-      setTimeout(() => setBlink(false), 150);
-    }, state === 'concerned' ? 2000 : 4000 + Math.random() * 2000);
-    return () => clearInterval(blinkInterval);
-  }, [state]);
+  // Springs for smooth movement
+  const springConfig = { stiffness: 120, damping: 30 };
 
-  const getGlowColor = () => {
-    switch (state) {
-      case 'happy': return 'bg-emerald-500/30 shadow-emerald-500/20';
-      case 'angry': return 'bg-rose-500/30 shadow-rose-500/20';
-      case 'concerned': return 'bg-amber-500/30 shadow-amber-500/20';
-      case 'streak': return 'bg-orange-500/40 shadow-orange-500/30';
-      default: return 'bg-purple-500/20 shadow-purple-500/10';
-    }
-  };
+  // Gaze tracking for the large eyes - Global Hero-level tracking
+  const eyeX = useSpring(useTransform(mouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1000], [-12, 12]), springConfig);
+  const eyeY = useSpring(useTransform(mouseY, [0, typeof window !== 'undefined' ? window.innerHeight : 1000], [-10, 10]), springConfig);
 
-  const mascotColor = state === 'angry' ? '#f43f5e' : state === 'happy' ? '#10b981' : state === 'concerned' ? '#f59e0b' : '#8b5cf6';
+  // Subtle Body rotation based on mouse
+  const rotateX = useSpring(useTransform(mouseY, [0, typeof window !== 'undefined' ? window.innerHeight : 1000], [15, -15]), springConfig);
+  const rotateY = useSpring(useTransform(mouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1000], [-15, 15]), springConfig);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [mouseX, mouseY]);
 
   return (
-    <div className={`relative w-32 h-32 ${className}`}>
-      {/* Spotlight behind mascot */}
+    <div className={`relative flex items-center justify-center pointer-events-none ${className}`}>
+      {/* Ambient Glow behind the cat */}
       <motion.div
-        animate={{ scale: [1.2, 1.5, 1.2], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 3, repeat: Infinity }}
-        className={`absolute inset-0 blur-[60px] rounded-full transition-colors duration-700 ${getGlowColor()}`}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.4, 0.3] }}
+        transition={{ duration: 4, repeat: Infinity }}
+        className="absolute inset-[-100px] blur-[100px] rounded-full bg-indigo-600/20 z-0"
       />
 
       <motion.div
-        className="w-full h-full relative z-10"
-        animate={
-          state === 'happy' ? { y: [0, -20, 0], scale: [1, 1.1, 1] } :
-            state === 'angry' ? { x: [-2, 2, -2, 2, 0] } :
-              state === 'concerned' ? { y: [0, -4, 0] } :
-                state === 'shipping' ? { rotate: [0, -5, 5, -5, 5, 0], scale: [1, 1.1, 1] } :
-                  state === 'streak' ? { scale: [1, 1.15, 1], y: [0, -15, 0] } :
-                    state === 'failed' ? { rotate: [0, 180], y: [0, 50], opacity: [1, 0], scale: [1, 0.5] } :
-                      { y: [0, -8, 0], scale: [1, 1.02, 1] } // neutral/idle
-        }
-        transition={{
-          duration: (state as any) === 'neutral' ? 4 : state === 'happy' ? 0.4 : state === 'angry' ? 0.1 : state === 'failed' ? 0.8 : 4,
-          repeat: state === 'failed' ? 0 : Infinity,
-          ease: state === 'happy' ? "easeOut" : "easeInOut"
-        }}
+        className="relative z-10 w-full h-full"
+        style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
       >
-        <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-[0_0_20px_rgba(0,0,0,0.1)]">
-          {/* Tail */}
+        <svg viewBox="0 0 200 220" className="w-full h-full overflow-visible drop-shadow-[0_30px_60px_rgba(0,0,0,0.4)]">
+          <defs>
+            <radialGradient id="bodyGradient" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stopColor="#6d28d9" />
+              <stop offset="100%" stopColor="#1e1b4b" />
+            </radialGradient>
+            <filter id="eyeGlow">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+
+          {/* Refined Realistic Ears (Pointed, layered like image) */}
+          <motion.g animate={{ rotate: [-2, 2, -2] }} transition={{ duration: 4, repeat: Infinity }} style={{ originX: "65px", originY: "60px" }}>
+            <path d="M40 60 L10 10 L75 45 Z" fill="#1e1b4b" stroke="#6d28d9" strokeWidth="4" strokeLinejoin="round" />
+            <path d="M45 55 L20 20 L65 42 Z" fill="#ca8dfc" opacity="0.15" />
+          </motion.g>
+          <motion.g animate={{ rotate: [2, -2, 2] }} transition={{ duration: 4.2, repeat: Infinity, delay: 0.1 }} style={{ originX: "135px", originY: "60px" }}>
+            <path d="M160 60 L190 10 L125 45 Z" fill="#1e1b4b" stroke="#6d28d9" strokeWidth="4" strokeLinejoin="round" />
+            <path d="M155 55 L180 20 L135 42 Z" fill="#ca8dfc" opacity="0.15" />
+          </motion.g>
+
+          {/* Refined Thick Curved Tail (like image) */}
           <motion.path
-            d="M85 70 Q95 60 85 50"
-            stroke={mascotColor}
-            strokeWidth="6"
+            d="M175 140 Q215 140 195 200"
             fill="none"
+            stroke="#1e1b4b"
+            strokeWidth="24"
             strokeLinecap="round"
-            animate={{ rotate: [0, 20, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            style={{ originX: '85px', originY: '70px' }}
+            animate={{ rotate: [-8, 8, -8] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{ originX: "175px", originY: "140px" }}
           />
 
-          {/* Ears */}
-          <path d="M20 30 L40 10 L45 35 Z" fill={mascotColor} className="transition-colors duration-500" />
-          <path d="M80 30 L60 10 L55 35 Z" fill={mascotColor} className="transition-colors duration-500" />
+          {/* Main Round Body */}
+          <circle cx="100" cy="110" r="85" fill="url(#bodyGradient)" />
 
-          {/* Head */}
-          <motion.circle
-            cx="50" cy="50" r="35" fill={mascotColor}
-            className="transition-colors duration-500"
-            animate={{ scale: [1, 1.03, 1] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          />
+          {/* Large Glowing Eyes with Global Tracking */}
+          <motion.g style={{ x: eyeX, y: eyeY }}>
+            {/* Outer Eye Glow */}
+            <circle cx="65" cy="110" r="32" fill="#14b8a6" opacity="0.65" filter="url(#eyeGlow)" />
+            <circle cx="135" cy="110" r="32" fill="#14b8a6" opacity="0.65" filter="url(#eyeGlow)" />
 
-          {/* Eyes */}
-          <g>
-            <circle cx="40" cy="45" r="4" fill="white" />
-            <circle cx="60" cy="45" r="4" fill="white" />
+            {/* Pupil */}
+            <circle cx="65" cy="110" r="22" fill="#000" />
+            <circle cx="135" cy="110" r="22" fill="#000" />
 
-            <motion.circle
-              cx="40" cy="45" r="2" fill="black"
-              animate={state === 'angry' ? { scaleY: 0.1, y: 1 } : blink ? { scaleY: 0.1 } : { scaleY: 1 }}
-            />
-            <motion.circle
-              cx="60" cy="45" r="2" fill="black"
-              animate={state === 'angry' ? { scaleY: 0.1, y: 1 } : blink ? { scaleY: 0.1 } : { scaleY: 1 }}
-            />
+            {/* Realistic Shine Highlights */}
+            <circle cx="55" cy="100" r="8" fill="#fff" opacity="0.95" />
+            <circle cx="125" cy="100" r="8" fill="#fff" opacity="0.95" />
+            <circle cx="78" cy="122" r="4" fill="#fff" opacity="0.6" />
+            <circle cx="148" cy="122" r="4" fill="#fff" opacity="0.6" />
+          </motion.g>
+
+          {/* Whiskers (Pink) */}
+          <g stroke="#fda4af" strokeWidth="3.5" strokeLinecap="round" opacity="0.7">
+            <line x1="25" y1="120" x2="-35" y2="105" />
+            <line x1="25" y1="135" x2="-35" y2="135" />
+            <line x1="25" y1="150" x2="-35" y2="165" />
+
+            <line x1="175" y1="120" x2="235" y2="105" />
+            <line x1="175" y1="135" x2="235" y2="135" />
+            <line x1="175" y1="150" x2="235" y2="165" />
           </g>
 
-          {/* Nose */}
-          <path d="M48 55 L52 55 L50 58 Z" fill="#ff9999" />
+          {/* Paws */}
+          <ellipse cx="65" cy="190" rx="20" ry="12" fill="#1e1b4b" opacity="0.9" />
+          <ellipse cx="135" cy="190" rx="20" ry="12" fill="#1e1b4b" opacity="0.9" />
+
+          {/* Small Pink Nose */}
+          <ellipse cx="100" cy="140" rx="7" ry="6" fill="#fda4af" />
 
           {/* Mouth */}
-          <motion.path
-            d={state === 'happy' || state === 'shipping' ? "M40 65 Q50 75 60 65" : state === 'angry' ? "M40 65 Q50 55 60 65" : "M45 62 Q50 67 55 62"}
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-
-          {/* Blush */}
-          {(state === 'happy' || state === 'shipping') && (
-            <>
-              <motion.circle initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} cx="30" cy="55" r="3" fill="#ff9999" />
-              <motion.circle initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} cx="70" cy="55" r="3" fill="#ff9999" />
-            </>
-          )}
+          <path d="M90 152 Q100 162 110 152" fill="none" stroke="#6d28d9" strokeWidth="3" strokeLinecap="round" opacity="0.6" />
         </svg>
       </motion.div>
 
-      {/* Speech Bubble */}
+      {/* Speech Bubble - Text Only */}
       <motion.div
-        className="absolute -top-10 -right-16 glass-panel px-4 py-2 rounded-2xl text-[10px] font-black text-slate-900 whitespace-nowrap shadow-xl border-white/10 backdrop-blur-md"
-        initial={{ opacity: 0, scale: 0, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="absolute -top-20 -right-20 px-0 py-0 text-[15px] font-black text-slate-900 whitespace-nowrap z-20 pointer-events-none transition-all drop-shadow-[0_4px_12px_rgba(30,27,75,0.1)]"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', damping: 15 }}
         key={state}
       >
-        {state === 'happy' ? "AMAZING SHIP! 🚢" :
-          state === 'angry' ? "PROTOCOL FAILED... 💀" :
-            state === 'concerned' ? "REWARD POOL IS HUGE! 😱" :
-              state === 'shipping' ? "LFG! SHIP IT! 🚀" :
-                state === 'streak' ? "ON FIRE! 🔥🔥🔥" :
-                  "READY TO COMMIT?"}
+        <span className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.3)]" />
+          {state === 'happy' ? "ELITE SHIP! 🚀" :
+            state === 'angry' ? "STAKE BURNED... 🔥" :
+              "READY TO DOMINATE?"}
+        </span>
       </motion.div>
     </div>
   );
